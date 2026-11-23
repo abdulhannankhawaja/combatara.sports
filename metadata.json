@@ -1,0 +1,6 @@
+{
+  "name": "Sarwar Khawaja Industries Pvt Ltd — Sialkot 3D AI Export Hub",
+  "description": "Interactive 3D AI export hub and international buyer lead discovery platform for Sialkot sports, martial arts, apparel, and leather manufacturers.",
+  "requestFramePermissions": ["geolocation", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

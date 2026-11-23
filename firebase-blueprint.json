@@ -1,0 +1,463 @@
+{
+  "entities": {
+    "ExporterProfile": {
+      "title": "ExporterProfile",
+      "description": "Registered Sialkot export company profile tied to the authenticated Firebase user.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Firebase Auth UID of the exporter."
+        },
+        "companyName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "directorName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "founderHeritage": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 120
+        },
+        "city": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 120
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 40
+        },
+        "ntnOrChamberId": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 60
+        },
+        "specialties": {
+          "type": "array"
+        },
+        "customOrdersEnabled": {
+          "type": "boolean"
+        },
+        "minOrderUnits": {
+          "type": "number"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "uid",
+        "companyName",
+        "directorName",
+        "city",
+        "email",
+        "specialties",
+        "customOrdersEnabled",
+        "minOrderUnits",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ExportLead": {
+      "title": "ExportLead",
+      "description": "Discovered international buyer lead for Sialkot exports.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "companyName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "country": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "city": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 80
+        },
+        "buyerType": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "productCategory": {
+          "type": "string",
+          "enum": [
+            "karate-suits",
+            "footballs",
+            "hockeys",
+            "hotballs",
+            "apparels-leather",
+            "custom"
+          ]
+        },
+        "website": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 300
+        },
+        "contactEmail": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 120
+        },
+        "contactPhone": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 60
+        },
+        "sourcingSignal": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "estimatedOrderVolume": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 120
+        },
+        "leadScore": {
+          "type": "number"
+        },
+        "matchedKeyword": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 120
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "new",
+            "contacted",
+            "sample_sent",
+            "negotiating",
+            "won",
+            "archived"
+          ]
+        },
+        "sourceUri": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 400
+        },
+        "sourceTitle": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 240
+        },
+        "outreachPitch": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 4000
+        },
+        "strategyNotes": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 4000
+        },
+        "lat": {
+          "type": "number"
+        },
+        "lng": {
+          "type": "number"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "companyName",
+        "country",
+        "buyerType",
+        "productCategory",
+        "sourcingSignal",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SearchCampaign": {
+      "title": "SearchCampaign",
+      "description": "Historical AI lead search run saved by the exporter.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "productCategory": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "targetRegion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "buyerType": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "customSpecs": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 400
+        },
+        "leadCount": {
+          "type": "number"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 1500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "productCategory",
+        "targetRegion",
+        "buyerType",
+        "leadCount",
+        "createdAt"
+      ]
+    },
+    "CustomOrderInquiry": {
+      "title": "CustomOrderInquiry",
+      "description": "Custom OEM manufacturing inquiry saved in Firestore by an authenticated buyer or exporter.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "referenceCode": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 40
+        },
+        "buyerName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "companyName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "country": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 120
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 40
+        },
+        "productCategories": {
+          "type": "array"
+        },
+        "quantity": {
+          "type": "number"
+        },
+        "customizationDetails": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["received", "reviewing", "quoted", "sample_prepared", "closed"]
+        },
+        "aiTriageSummary": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 1500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "referenceCode",
+        "buyerName",
+        "companyName",
+        "country",
+        "email",
+        "productCategories",
+        "quantity",
+        "customizationDetails",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "InsightSubscription": {
+      "title": "InsightSubscription",
+      "description": "Weekly AI-generated Sialkot Export Market Insights subscription.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "subscriberName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 120
+        },
+        "companyName": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 140
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "productCategories": {
+          "type": "array"
+        },
+        "targetRegions": {
+          "type": "array"
+        },
+        "frequency": {
+          "type": "string",
+          "enum": ["weekly"]
+        },
+        "focusNotes": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 800
+        },
+        "latestReportSummary": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 3000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "paused"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "subscriberName",
+        "email",
+        "role",
+        "productCategories",
+        "targetRegions",
+        "frequency",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/exporters/{uid}": {
+      "schema": {
+        "$ref": "#/entities/ExporterProfile"
+      },
+      "description": "Private exporter registration profile keyed by Firebase Auth UID."
+    },
+    "/leads/{leadId}": {
+      "schema": {
+        "$ref": "#/entities/ExportLead"
+      },
+      "description": "Buyer leads owned and managed by a registered exporter."
+    },
+    "/campaigns/{campaignId}": {
+      "schema": {
+        "$ref": "#/entities/SearchCampaign"
+      },
+      "description": "Saved lead discovery campaigns owned by a registered exporter."
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": {
+        "$ref": "#/entities/CustomOrderInquiry"
+      },
+      "description": "Custom OEM order inquiries synced to Firestore by authenticated users."
+    },
+    "/insightSubscriptions/{subscriptionId}": {
+      "schema": {
+        "$ref": "#/entities/InsightSubscription"
+      },
+      "description": "Weekly Export Market Insights subscriptions and generated demand reports."
+    }
+  }
+}

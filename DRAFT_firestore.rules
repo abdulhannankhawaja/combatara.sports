@@ -1,0 +1,336 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: default deny everything
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Reusable Hardened Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedEmail() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerifiedEmail() && request.auth.token.email == 'khsamar218@gmail.com';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    // --- Entity Validation Blueprints ---
+    function isValidExporterProfile(data) {
+      return data.keys().hasAll([
+        'uid', 'companyName', 'directorName', 'city', 'email',
+        'specialties', 'customOrdersEnabled', 'minOrderUnits', 'createdAt', 'updatedAt'
+      ])
+      && data.keys().hasOnly([
+        'uid', 'companyName', 'directorName', 'founderHeritage', 'city', 'email',
+        'phone', 'ntnOrChamberId', 'specialties', 'customOrdersEnabled', 'minOrderUnits',
+        'createdAt', 'updatedAt'
+      ])
+      && isValidId(data.uid)
+      && isValidString(data.companyName, 1, 140)
+      && isValidString(data.directorName, 1, 80)
+      && (!data.keys().hasAny(['founderHeritage']) || isValidString(data.founderHeritage, 0, 120))
+      && isValidString(data.city, 1, 80)
+      && isValidString(data.email, 3, 120)
+      && (!data.keys().hasAny(['phone']) || isValidString(data.phone, 0, 40))
+      && (!data.keys().hasAny(['ntnOrChamberId']) || isValidString(data.ntnOrChamberId, 0, 60))
+      && data.specialties is list
+      && data.specialties.size() >= 1
+      && data.specialties.size() <= 10
+      && data.specialties[0] is string
+      && data.specialties[0].size() <= 60
+      && data.customOrdersEnabled is bool
+      && data.minOrderUnits is number
+      && data.minOrderUnits >= 1
+      && data.minOrderUnits <= 1000000
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
+    function isValidCategory(cat) {
+      return cat in ['karate-suits', 'footballs', 'hockeys', 'hotballs', 'apparels-leather', 'custom'];
+    }
+
+    function isValidLeadStatus(status) {
+      return status in ['new', 'contacted', 'sample_sent', 'negotiating', 'won', 'archived'];
+    }
+
+    function isValidExportLead(data) {
+      return data.keys().hasAll([
+        'ownerId', 'companyName', 'country', 'buyerType',
+        'productCategory', 'sourcingSignal', 'status', 'createdAt', 'updatedAt'
+      ])
+      && data.keys().hasOnly([
+        'ownerId', 'companyName', 'country', 'city', 'buyerType', 'productCategory',
+        'website', 'contactEmail', 'contactPhone', 'sourcingSignal', 'estimatedOrderVolume',
+        'leadScore', 'matchedKeyword', 'status', 'sourceUri', 'sourceTitle',
+        'outreachPitch', 'strategyNotes', 'lat', 'lng', 'createdAt', 'updatedAt'
+      ])
+      && isValidId(data.ownerId)
+      && isValidString(data.companyName, 1, 160)
+      && isValidString(data.country, 1, 80)
+      && (!data.keys().hasAny(['city']) || isValidString(data.city, 0, 80))
+      && isValidString(data.buyerType, 1, 80)
+      && isValidCategory(data.productCategory)
+      && (!data.keys().hasAny(['website']) || isValidString(data.website, 0, 300))
+      && (!data.keys().hasAny(['contactEmail']) || isValidString(data.contactEmail, 0, 120))
+      && (!data.keys().hasAny(['contactPhone']) || isValidString(data.contactPhone, 0, 60))
+      && isValidString(data.sourcingSignal, 1, 1000)
+      && (!data.keys().hasAny(['estimatedOrderVolume']) || isValidString(data.estimatedOrderVolume, 0, 120))
+      && (!data.keys().hasAny(['leadScore']) || (data.leadScore is number && data.leadScore >= 0 && data.leadScore <= 100))
+      && (!data.keys().hasAny(['matchedKeyword']) || isValidString(data.matchedKeyword, 0, 120))
+      && isValidLeadStatus(data.status)
+      && (!data.keys().hasAny(['sourceUri']) || isValidString(data.sourceUri, 0, 400))
+      && (!data.keys().hasAny(['sourceTitle']) || isValidString(data.sourceTitle, 0, 240))
+      && (!data.keys().hasAny(['outreachPitch']) || isValidString(data.outreachPitch, 0, 4000))
+      && (!data.keys().hasAny(['strategyNotes']) || isValidString(data.strategyNotes, 0, 4000))
+      && (!data.keys().hasAny(['lat']) || (data.lat is number && data.lat >= -90 && data.lat <= 90))
+      && (!data.keys().hasAny(['lng']) || (data.lng is number && data.lng >= -180 && data.lng <= 180))
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
+    function isValidSearchCampaign(data) {
+      return data.keys().hasAll([
+        'ownerId', 'productCategory', 'targetRegion', 'buyerType', 'leadCount', 'createdAt'
+      ])
+      && data.keys().hasOnly([
+        'ownerId', 'productCategory', 'targetRegion', 'buyerType',
+        'customSpecs', 'leadCount', 'summary', 'createdAt'
+      ])
+      && isValidId(data.ownerId)
+      && isValidString(data.productCategory, 1, 80)
+      && isValidString(data.targetRegion, 1, 80)
+      && isValidString(data.buyerType, 1, 80)
+      && (!data.keys().hasAny(['customSpecs']) || isValidString(data.customSpecs, 0, 400))
+      && data.leadCount is number
+      && data.leadCount >= 0
+      && data.leadCount <= 500
+      && (!data.keys().hasAny(['summary']) || isValidString(data.summary, 0, 1500))
+      && data.createdAt is timestamp;
+    }
+
+    function isValidInquiryStatus(status) {
+      return status in ['received', 'reviewing', 'quoted', 'sample_prepared', 'closed'];
+    }
+
+    function isValidCustomOrderInquiry(data) {
+      return data.keys().hasAll([
+        'ownerId', 'referenceCode', 'buyerName', 'companyName', 'country',
+        'email', 'productCategories', 'quantity', 'customizationDetails',
+        'status', 'createdAt', 'updatedAt'
+      ])
+      && data.keys().hasOnly([
+        'ownerId', 'referenceCode', 'buyerName', 'companyName', 'country',
+        'email', 'phone', 'productCategories', 'quantity', 'customizationDetails',
+        'status', 'aiTriageSummary', 'createdAt', 'updatedAt'
+      ])
+      && isValidId(data.ownerId)
+      && isValidString(data.referenceCode, 3, 40)
+      && isValidString(data.buyerName, 1, 100)
+      && isValidString(data.companyName, 1, 140)
+      && isValidString(data.country, 1, 80)
+      && isValidString(data.email, 3, 120)
+      && (!data.keys().hasAny(['phone']) || isValidString(data.phone, 0, 40))
+      && data.productCategories is list
+      && data.productCategories.size() >= 1
+      && data.productCategories.size() <= 8
+      && data.productCategories[0] is string
+      && data.productCategories[0].size() <= 80
+      && data.quantity is number
+      && data.quantity >= 1
+      && data.quantity <= 10000000
+      && isValidString(data.customizationDetails, 1, 2000)
+      && isValidInquiryStatus(data.status)
+      && (!data.keys().hasAny(['aiTriageSummary']) || isValidString(data.aiTriageSummary, 0, 1500))
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
+    function isValidInsightSubscription(data) {
+      return data.keys().hasAll([
+        'ownerId', 'subscriberName', 'email', 'role', 'productCategories',
+        'targetRegions', 'frequency', 'status', 'createdAt', 'updatedAt'
+      ])
+      && data.keys().hasOnly([
+        'ownerId', 'subscriberName', 'email', 'companyName', 'role',
+        'productCategories', 'targetRegions', 'frequency', 'focusNotes',
+        'latestReportSummary', 'status', 'createdAt', 'updatedAt'
+      ])
+      && isValidId(data.ownerId)
+      && isValidString(data.subscriberName, 1, 100)
+      && isValidString(data.email, 3, 120)
+      && (!data.keys().hasAny(['companyName']) || isValidString(data.companyName, 0, 140))
+      && isValidString(data.role, 1, 80)
+      && data.productCategories is list
+      && data.productCategories.size() >= 1
+      && data.productCategories.size() <= 8
+      && data.productCategories[0] is string
+      && data.productCategories[0].size() <= 80
+      && data.targetRegions is list
+      && data.targetRegions.size() >= 1
+      && data.targetRegions.size() <= 8
+      && data.targetRegions[0] is string
+      && data.targetRegions[0].size() <= 80
+      && data.frequency in ['weekly']
+      && (!data.keys().hasAny(['focusNotes']) || isValidString(data.focusNotes, 0, 800))
+      && (!data.keys().hasAny(['latestReportSummary']) || isValidString(data.latestReportSummary, 0, 3000))
+      && data.status in ['active', 'paused']
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
+    // --- Collection Rules ---
+
+    match /test/{docId} {
+      allow get: if docId == 'connection';
+      allow list, create, update, delete: if false;
+    }
+
+    match /exporters/{uid} {
+      allow get: if isSignedIn() && isValidId(uid) && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isVerifiedEmail()
+        && isValidId(uid)
+        && request.auth.uid == uid
+        && isValidExporterProfile(incoming())
+        && incoming().uid == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerifiedEmail()
+        && isValidId(uid)
+        && (request.auth.uid == uid || isAdmin())
+        && isValidExporterProfile(incoming())
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'companyName', 'directorName', 'founderHeritage', 'city', 'email',
+          'phone', 'ntnOrChamberId', 'specialties', 'customOrdersEnabled',
+          'minOrderUnits', 'updatedAt'
+        ]);
+      allow delete: if isAdmin();
+    }
+
+    match /leads/{leadId} {
+      allow get: if isSignedIn() && isValidId(leadId) && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isVerifiedEmail()
+        && isValidId(leadId)
+        && isValidExportLead(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerifiedEmail()
+        && isValidId(leadId)
+        && isValidExportLead(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin()
+          || (
+            existing().ownerId == request.auth.uid
+            && !(existing().status in ['won', 'archived'])
+            && (
+              incoming().diff(existing()).affectedKeys().hasOnly([
+                'status', 'outreachPitch', 'strategyNotes', 'updatedAt'
+              ])
+              ||
+              incoming().diff(existing()).affectedKeys().hasOnly([
+                'contactEmail', 'contactPhone', 'website', 'city',
+                'estimatedOrderVolume', 'leadScore', 'matchedKeyword', 'lat', 'lng', 'updatedAt'
+              ])
+            )
+          )
+        );
+      allow delete: if isSignedIn() && isValidId(leadId) && (existing().ownerId == request.auth.uid || isAdmin());
+    }
+
+    match /campaigns/{campaignId} {
+      allow get: if isSignedIn() && isValidId(campaignId) && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isVerifiedEmail()
+        && isValidId(campaignId)
+        && isValidSearchCampaign(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if isSignedIn() && isValidId(campaignId) && (existing().ownerId == request.auth.uid || isAdmin());
+    }
+
+    match /inquiries/{inquiryId} {
+      allow get: if isSignedIn() && isValidId(inquiryId) && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isVerifiedEmail()
+        && isValidId(inquiryId)
+        && isValidCustomOrderInquiry(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerifiedEmail()
+        && isValidId(inquiryId)
+        && isValidCustomOrderInquiry(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin()
+          || (
+            existing().ownerId == request.auth.uid
+            && existing().status != 'closed'
+            && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+          )
+        );
+      allow delete: if isSignedIn() && isValidId(inquiryId) && (existing().ownerId == request.auth.uid || isAdmin());
+    }
+
+    match /insightSubscriptions/{subscriptionId} {
+      allow get: if isSignedIn() && isValidId(subscriptionId) && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isVerifiedEmail()
+        && isValidId(subscriptionId)
+        && isValidInsightSubscription(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerifiedEmail()
+        && isValidId(subscriptionId)
+        && isValidInsightSubscription(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin()
+          || (
+            existing().ownerId == request.auth.uid
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'status', 'latestReportSummary', 'productCategories', 'targetRegions', 'updatedAt'
+            ])
+          )
+        );
+      allow delete: if isSignedIn() && isValidId(subscriptionId) && (existing().ownerId == request.auth.uid || isAdmin());
+    }
+  }
+}
